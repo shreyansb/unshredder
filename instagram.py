@@ -4,12 +4,13 @@ written on Sunday, the 13th of November, 2011
 """
 
 from PIL import Image
+import random
 from itertools import islice, count
 
 class Unshredder():
-    pixel_diff_threshold = 25       # consider two pixel attrs a match if their diff 
+    pixel_diff_threshold = 35       # consider two pixel attrs a match if their diff 
                                     # is less than this number
-    column_match_threshold = 0.75   # consider two columns a match if more than
+    column_match_threshold = 0.45   # consider two columns a match if more than
                                     # this portion of their pixels match
 
     def __init__(self, image_file='TokyoPanoramaShredded.png', strip_width=32):
@@ -23,7 +24,10 @@ class Unshredder():
         # create a list of empty lists, with room for the left and right most
         # pixels for each strip
         self.strip_edges = [[] for i in range(self.number_of_strips*2)]
-        self.sort_order = range(self.number_of_strips)
+        #self.sort_order = range(self.number_of_strips)
+        # start it off with a random strip
+        self.sort_order = [random.randint(0, self.number_of_strips-1)]
+        self.sort_order = [0]
         self.set_strip_edges()
 
     def unshred(self):
@@ -51,26 +55,60 @@ class Unshredder():
         """Uses self.strip_edges to compare strips and sort them into 
         the original image
         """
+        starting_order = list(self.sort_order)
+        l_strip, r_strip = self.get_neighbours()
+        if l_strip:
+            self.sort_order = [l_strip] + self.sort_order
+        if r_strip:
+            self.sort_order = self.sort_order + [r_strip]
+        if len(self.sort_order) < self.number_of_strips:
+            print self.sort_order
+            if starting_order == self.sort_order:
+                print "no more matches"
+                return
+            self.sort_strips()
+        else:
+            return
+
+    def get_neighbours(self):
+        l_most_strip = self.sort_order[0]
+        r_most_strip = self.sort_order[-1]
+        left, right = None, None
+        for i in range(self.number_of_strips):
+            if i in self.sort_order: continue
+            left = self.compare_strips(l_most_strip, i, find_left=True)
+            if left != 0:
+                left = i
+                break
+        for i in range(self.number_of_strips):
+            if i in self.sort_order: continue
+            right = self.compare_strips(r_most_strip, i, find_right=True)
+            if right != 0:
+                right = i
+                break
+        return left, right
     
-    def compare_strips(self, s1, s2):
+    def compare_strips(self, s1, s2, find_right=False, find_left=False):
         """Compares two strips and returns if they should be next to each other,
         and if so, in what order
         Returns 1 is s2 is to the right of s1, -1 if s2 is to the left of s1,
         0 if they are not neighbours
         """
         # compare s1 right with s2 left
-        s1r = self.strip_edges[(2 * s1) + 1]
-        s2l = self.strip_edges[2 * s2]
-        diff1 = self.compare_columns(s1r, s2l)
-        if diff1:
-            return 1
+        if find_right:
+            s1r = self.strip_edges[(2 * s1) + 1]
+            s2l = self.strip_edges[2 * s2]
+            diff1 = self.compare_columns(s1r, s2l)
+            if diff1:
+                return 1
 
         # compare s1 left with s2 right
-        s1l = self.strip_edges[2 * s1]
-        s2r = self.strip_edges[(2 * s2) + 1]
-        diff2 = self.compare_columns(s1l, s2r)
-        if diff2:
-            return -1
+        if find_left:
+            s1l = self.strip_edges[2 * s1]
+            s2r = self.strip_edges[(2 * s2) + 1]
+            diff2 = self.compare_columns(s1l, s2r)
+            if diff2:
+                return -1
 
         return 0
 
@@ -81,7 +119,7 @@ class Unshredder():
         total_matches = 0.0
         for i in xrange(self.height):
             total_matches += self.compare_pixels(col1[i], col2[i])
-        print total_matches, self.height, round((total_matches / self.height),2)
+        #print total_matches, self.height, round((total_matches / self.height),2)
         if (total_matches / self.height) > self.column_match_threshold:
             return 1
         return 0
@@ -90,7 +128,6 @@ class Unshredder():
         """Compare two pixels.
         Returns 1 if they are deemed neighbours, 0 otherwise
         """
-        print p1, p2
         for i in range(4):
             if abs(p1[i] - p2[i]) > self.pixel_diff_threshold:
                 return 0
