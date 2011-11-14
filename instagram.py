@@ -5,6 +5,7 @@ written on Sunday, the 13th of November, 2011
 
 from PIL import Image
 import random
+import time
 from itertools import islice, count
 
 class Unshredder():
@@ -27,8 +28,7 @@ class Unshredder():
         #self.sort_order = range(self.number_of_strips)
         # start it off with a random strip
         self.sort_order = [random.randint(0, self.number_of_strips-1)]
-        self.sort_order = [0]
-        self.set_strip_edges()
+        #self.sort_order = [0]
 
     def unshred(self):
         self.set_strip_edges()
@@ -137,11 +137,12 @@ class Unshredder():
         """Creates a new image based on the order of strips in self.sort_order
         """
         unshredded = Image.new("RGBA", self.image.size)
+        filename = "unshredded-%s.png" % int(time.time())
         for i, strip_no in enumerate(self.sort_order):
             strip = self.get_strip(strip_no)
             destination_point_top_left = (i * self.strip_width, 0)
             unshredded.paste(strip, destination_point_top_left)
-            unshredded.save("unshredded.png", "PNG")
+            unshredded.save(filename, "PNG")
 
     def get_strip(self, strip_no):
         """Returns an ImageCrop object for the strip
