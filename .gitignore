@@ -2,3 +2,4 @@
 *.png
 *.jpg
 __init__.py
+.DS_STORE
