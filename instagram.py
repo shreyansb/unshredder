@@ -14,7 +14,7 @@ class Unshredder():
                                     # by this much
 
     def __init__(self, image_file='TokyoPanoramaShredded.png'):
-        print "initializing..."
+        print "initializing %s..." % image_file
         self.image_file = image_file
         self.image = Image.open(image_file)
         self.width, self.height = self.image.size
@@ -31,7 +31,7 @@ class Unshredder():
 
     def unshred(self):
         self.set_strip_edges()
-        print "sorting..."
+        print "unshredding..."
         self.sort_strips()
         self.create_image_from_sort_order()
 
@@ -142,6 +142,7 @@ class Unshredder():
             col1 = self.get_column_of_pixels(i)
             col2 = self.get_column_of_pixels(i+1)
             if not self.compare_columns(col1, col2):
+                print "detected strip width of %s pixels..." % str(i+1)
                 return i+1
     
     def get_column_of_pixels(self, x_coord):
