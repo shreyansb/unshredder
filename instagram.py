@@ -26,6 +26,7 @@ class Unshredder():
         self.sort_order = [self.number_of_strips-1]
         image_file_parts = image_file.rsplit('.')
         self.output_filename = '%s-unshredded.%s' % (image_file_parts[0], image_file_parts[1])
+        self.unshredded = None
         self.unshred()
 
     def unshred(self):
@@ -33,6 +34,8 @@ class Unshredder():
         print "unshredding..."
         self.sort_strips()
         self.create_image_from_sort_order()
+        self.image.show()
+        self.unshredded.show()
 
     def set_strip_edges(self):
         """Collects columns of pixels that represent the left and right
@@ -119,12 +122,12 @@ class Unshredder():
     def create_image_from_sort_order(self):
         """Creates a new image based on the order of strips in self.sort_order
         """
-        unshredded = Image.new("RGBA", self.image.size)
+        self.unshredded = Image.new("RGBA", self.image.size)
         for i, strip_no in enumerate(self.sort_order):
             strip = self.get_strip(strip_no)
             destination_point_top_left = (i * self.strip_width, 0)
-            unshredded.paste(strip, destination_point_top_left)
-        unshredded.save(self.output_filename, "PNG")
+            self.unshredded.paste(strip, destination_point_top_left)
+        self.unshredded.save(self.output_filename, "PNG")
         print "saved the unshredded file as %s" % self.output_filename
 
     def get_strip(self, strip_no):
