@@ -2,6 +2,7 @@
 by Shreyans Bhansali
 written on Sunday, the 13th of November, 2011
 """
+import sys
 from PIL import Image
 
 class Unshredder():
@@ -12,7 +13,7 @@ class Unshredder():
     column_match_step = 0.03        # if we don't find a match, we lower the threshold
                                     # by this much
 
-    def __init__(self, image_file='TokyoPanoramaShredded.png'):
+    def __init__(self, image_file):
         print "initializing %s..." % image_file
         self.image_file = image_file
         self.image = Image.open(image_file)
@@ -154,3 +155,12 @@ class Unshredder():
         for y in range(self.height):
             pixels.append(self.image_data[y * self.width + x_coord])
         return pixels
+
+def main(filename):
+    Unshredder(filename)
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        Unshredder(sys.argv[1])
+    else:
+        Unshredder('TokyoPanoramaShredded.png')
