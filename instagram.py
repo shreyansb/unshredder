@@ -15,7 +15,6 @@ class Unshredder():
 
     def __init__(self, image_file):
         print "initializing %s..." % image_file
-        self.image_file = image_file
         self.image = Image.open(image_file)
         self.width, self.height = self.image.size
         self.image_data = list(self.image.getdata())
@@ -156,8 +155,6 @@ class Unshredder():
             pixels.append(self.image_data[y * self.width + x_coord])
         return pixels
 
-def main(filename):
-    Unshredder(filename)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
