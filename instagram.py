@@ -2,7 +2,6 @@
 by Shreyans Bhansali
 written on Sunday, the 13th of November, 2011
 """
-
 from PIL import Image
 from itertools import islice, count
 
@@ -15,23 +14,24 @@ class Unshredder():
                                     # by this much
 
     def __init__(self, image_file='TokyoPanoramaShredded.png'):
+        print "initializing..."
         self.image_file = image_file
         self.image = Image.open(image_file)
         self.width, self.height = self.image.size
         self.image_data = list(self.image.getdata())
         self.image_size = len(self.image_data)
-        self.strip_width = self.detect_strip_width()
+        self.strip_width = self.detect_strip_width()     ### Bonus!
         self.number_of_strips = self.width / self.strip_width
-        # create a list of empty lists, with room for the left and right most
-        # pixels for each strip
+        # list to hold the edges of each strip
         self.strip_edges = [[] for i in range(self.number_of_strips*2)]
         self.sort_order = [self.number_of_strips-1]
         image_file_parts = image_file.rsplit('.')
         self.output_filename = '%s-unshredded.%s' % (image_file_parts[0], image_file_parts[1])
-        self.comparisons = 0
+        self.unshred()
 
     def unshred(self):
         self.set_strip_edges()
+        print "sorting..."
         self.sort_strips()
         self.create_image_from_sort_order()
 
@@ -44,11 +44,12 @@ class Unshredder():
         # put the pixel and its neighbour into the correct 'column'
         for i, p in enumerate(image_iterable):
             # looking forward to: http://bit.ly/n60KzL
-            if p == self.image_size: break
+            if p == self.image_size: 
+                break
             strip_no = i%(self.number_of_strips)
             l_pixel = self.image_data[p]
-            r_pixel = self.image_data[p + self.strip_width - 1]
             self.strip_edges[strip_no*2].append(l_pixel)
+            r_pixel = self.image_data[p + self.strip_width - 1]
             self.strip_edges[(strip_no*2)+1].append(r_pixel)
 
     def sort_strips(self):
@@ -63,6 +64,7 @@ class Unshredder():
                 self.column_match_threshold -= self.column_match_step
             self.sort_strips()
         else:
+            print "done."
             return
 
     def get_neighbours(self):
@@ -89,7 +91,6 @@ class Unshredder():
         """Compares two strips and returns 1 if s2 should be to
         the right of s1
         """
-        self.comparisons += 1
         s1r = self.strip_edges[(2 * s1) + 1]
         s2l = self.strip_edges[2 * s2]
         if self.compare_columns(s1r, s2l):
@@ -124,7 +125,8 @@ class Unshredder():
             strip = self.get_strip(strip_no)
             destination_point_top_left = (i * self.strip_width, 0)
             unshredded.paste(strip, destination_point_top_left)
-            unshredded.save(self.output_filename, "PNG")
+        unshredded.save(self.output_filename, "PNG")
+        print "saved the unshredded file as %s" % self.output_filename
 
     def get_strip(self, strip_no):
         """Returns an ImageCrop object for the strip
@@ -134,6 +136,8 @@ class Unshredder():
         return self.image.crop((x1, y1, x2, y2))
 
     def detect_strip_width(self):
+        """Returns the width of the strips, assuming constant width
+        """
         for i in range(self.width):
             col1 = self.get_column_of_pixels(i)
             col2 = self.get_column_of_pixels(i+1)
@@ -141,6 +145,8 @@ class Unshredder():
                 return i+1
     
     def get_column_of_pixels(self, x_coord):
+        """Returns the column of pixels for the given x coordinate
+        """
         pixels = list()
         for y in range(self.height):
             pixels.append(self.image_data[y * self.width + x_coord])
