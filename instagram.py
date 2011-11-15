@@ -3,7 +3,6 @@ by Shreyans Bhansali
 written on Sunday, the 13th of November, 2011
 """
 from PIL import Image
-from itertools import islice, count
 
 class Unshredder():
     pixel_diff_threshold = 15       # consider two pixel attrs a match if their diff 
@@ -40,7 +39,7 @@ class Unshredder():
         edges of strips.
         """
         # walk through the image, jumping among strip-edges
-        image_iterable = islice(count(), 0, self.image_size+1, self.strip_width)
+        image_iterable = xrange(0, self.image_size+1, self.strip_width)
         # put the pixel and its neighbour into the correct 'column'
         for i, p in enumerate(image_iterable):
             # looking forward to: http://bit.ly/n60KzL
